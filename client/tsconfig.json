@@ -2,8 +2,10 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
-    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "moduleResolution": "node",
     "jsx": "react-jsx",
     "noEmit": true
-  }
+  },
+  "include": ["src"]
 }
