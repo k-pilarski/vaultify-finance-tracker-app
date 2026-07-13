@@ -1,0 +1,113 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Obsługiwane waluty w systemie
+enum Currency {
+  PLN
+  EUR
+  USD
+}
+
+// Typy transakcji i kategorii
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// Interwały dla transakcji cyklicznych
+enum Interval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String?       // Nullable dla użytkowników logujących się przez Google OAuth
+  googleId     String?       @unique
+  name         String?
+  currency     Currency      @default(PLN)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  categories   Category[]
+  transactions Transaction[]
+  goals        Goal[]
+  recurring    RecurringTransaction[]
+}
+
+model Category {
+  id           String          @id @default(uuid())
+  name         String
+  type         TransactionType
+  color        String          // Hex color, np. "#3B82F6" (Tailwind blue-500)
+  icon         String          // Nazwa ikony z biblioteki Lucide Icons, np. "Wallet", "Utensils"
+  isDefault    Boolean         @default(false)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  recurring    RecurringTransaction[]
+
+  // Użytkownik nie może zdefiniować dwóch kategorii o tej samej nazwie i typie
+  @@unique([name, type, userId])
+}
+
+model Transaction {
+  id           String          @id @default(uuid())
+  amount       Decimal         @db.Decimal(10, 2)
+  type         TransactionType
+  description  String?
+  date         DateTime        @default(now())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     Category        @relation(fields: [categoryId], references: [id])
+  
+  // Opcjonalne powiązanie z celem finansowym (dla wpłat na cel)
+  goalId       String?
+  goal         Goal?           @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  // Powiązanie z transakcją cykliczną (jeśli została wygenerowana automatycznie)
+  recurringId  String?
+  recurring    RecurringTransaction? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime        @default(now())
+}
+
+model RecurringTransaction {
+  id           String          @id @default(uuid())
+  amount       Decimal         @db.Decimal(10, 2)
+  type         TransactionType
+  description  String?
+  interval     Interval
+  startDate    DateTime
+  nextRunDate  DateTime
+  isActive     Boolean         @default(true)
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId   String
+  category     Category        @relation(fields: [categoryId], references: [id])
+  transactions Transaction[]
+}
+
+model Goal {
+  id            String        @id @default(uuid())
+  name          String
+  targetAmount  Decimal       @db.Decimal(10, 2)
+  currentAmount Decimal       @db.Decimal(10, 2) @default(0)
+  deadline      DateTime?
+  color         String
+  icon          String
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[] // Historia wpłat zasilających ten konkretny cel
+  createdAt     DateTime      @default(now())
+}
