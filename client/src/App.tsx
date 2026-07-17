@@ -3,19 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Wallet } from 'lucide-react';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { useAuthStore } from './store/useAuthStore';
-
-// Temporary placeholders for views
-const LoginPlaceholder = () => (
-  <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
-    Login Page Placeholder
-  </div>
-);
-
-const RegisterPlaceholder = () => (
-  <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center text-xl font-bold">
-    Register Page Placeholder
-  </div>
-);
+import { LoginPage } from './pages/auth/LoginPage';
+import { RegisterPage } from './pages/auth/RegisterPage';
 
 const DashboardPlaceholder = () => {
   const { user, logout } = useAuthStore();
@@ -52,8 +41,8 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPlaceholder />} />
-      <Route path="/register" element={<RegisterPlaceholder />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
