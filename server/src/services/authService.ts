@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
 import { PrismaClient, Currency } from '@prisma/client';
+import * as categoryService from './categoryService';
 
 const prisma = new PrismaClient();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -15,21 +16,27 @@ export const register = async (email: string, password: string, name?: string, c
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      name,
-      currency: currency || Currency.PLN,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      currency: true,
-      createdAt: true,
-      updatedAt: true,
-    }
+  const user = await prisma.$transaction(async (tx) => {
+    const createdUser = await tx.user.create({
+      data: {
+        email,
+        passwordHash,
+        name,
+        currency: currency || Currency.PLN,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        currency: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+
+    await categoryService.seedDefaultCategories(createdUser.id, tx);
+    
+    return createdUser;
   });
 
   return user;
@@ -82,15 +89,21 @@ export const loginWithGoogle = async (idToken: string, fallbackCurrency?: Curren
       });
     }
   } else {
-    // Create new user
-    user = await prisma.user.create({
-      data: {
-        email,
-        name,
-        googleId,
-        passwordHash: null,
-        currency: fallbackCurrency || Currency.PLN,
-      }
+    // Create new user within a transaction to seed categories
+    user = await prisma.$transaction(async (tx) => {
+      const createdUser = await tx.user.create({
+        data: {
+          email,
+          name,
+          googleId,
+          passwordHash: null,
+          currency: fallbackCurrency || Currency.PLN,
+        }
+      });
+
+      await categoryService.seedDefaultCategories(createdUser.id, tx);
+      
+      return createdUser;
     });
   }
 
