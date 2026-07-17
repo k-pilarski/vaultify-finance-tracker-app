@@ -16,6 +16,11 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const googleLoginSchema = z.object({
+  idToken: z.string(),
+  currency: z.nativeEnum(Currency).optional(),
+});
+
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validatedData = registerSchema.parse(req.body);
@@ -76,4 +81,28 @@ export const logout = (req: Request, res: Response) => {
     sameSite: 'strict',
   });
   res.status(200).json({ message: 'Logged out successfully' });
+};
+
+export const googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validatedData = googleLoginSchema.parse(req.body);
+    const user = await authService.loginWithGoogle(validatedData.idToken, validatedData.currency);
+
+    const token = generateToken(user.id);
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ user });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: (error as any).errors });
+    } else {
+      next(error);
+    }
+  }
 };
