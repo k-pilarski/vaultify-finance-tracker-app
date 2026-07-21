@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler';
 import authRoutes from './routes/authRoutes';
 import categoryRoutes from './routes/categoryRoutes';
+import transactionRoutes from './routes/transactionRoutes';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(cookieParser());
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/categories', categoryRoutes);
+app.use('/api/v1/transactions', transactionRoutes);
 
 app.get('/api/v1/health', (req, res) => {
   res.json({
