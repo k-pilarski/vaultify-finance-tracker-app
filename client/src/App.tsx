@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Wallet } from 'lucide-react';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { useAuthStore } from './store/useAuthStore';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { GoalsPage } from './pages/GoalsPage';
+
 export default function App() {
   const { checkAuth } = useAuthStore();
 
@@ -21,6 +22,7 @@ export default function App() {
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/goals" element={<GoalsPage />} />
       </Route>
 
       {/* Fallback */}
