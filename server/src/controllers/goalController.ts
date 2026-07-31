@@ -10,6 +10,12 @@ const createGoalSchema = z.object({
   icon: z.string().min(1, 'Icon is required'),
 });
 
+const depositSchema = z.object({
+  amount: z.number().positive('Amount must be positive'),
+  categoryId: z.string().uuid('Invalid category ID'),
+  description: z.string().optional(),
+});
+
 export const getGoals = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.id;
@@ -49,6 +55,32 @@ export const deleteGoal = async (req: Request, res: Response, next: NextFunction
   } catch (error: any) {
     if (error.message === 'Goal not found or access denied') {
       return res.status(404).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+
+export const depositToGoal = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user!.id;
+    const goalId = req.params.id as string;
+
+    const validationResult = depositSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: validationResult.error.issues,
+      });
+    }
+
+    const result = await goalService.depositToGoal(userId, goalId, validationResult.data);
+    res.status(200).json(result);
+  } catch (error: any) {
+    if (error.message === 'Goal not found or access denied' || error.message === 'Category not found or access denied') {
+      return res.status(404).json({ error: error.message });
+    }
+    if (error.message === 'Category must be of type EXPENSE for deposits') {
+      return res.status(400).json({ error: error.message });
     }
     next(error);
   }
