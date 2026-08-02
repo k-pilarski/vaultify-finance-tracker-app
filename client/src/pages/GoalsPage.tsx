@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  Wallet, Target, PlusCircle, LogOut, LayoutDashboard, 
-  TrendingUp, PiggyBank, CheckCircle2 
+  Target, PlusCircle, TrendingUp, PiggyBank, CheckCircle2 
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useGoals } from '../hooks/useGoals';
@@ -10,9 +8,10 @@ import { Goal } from '../types/goal';
 import { GoalCard } from '../components/goals/GoalCard';
 import { GoalModal } from '../components/goals/GoalModal';
 import { DepositModal } from '../components/goals/DepositModal';
+import { Navbar } from '../components/layout/Navbar';
 
 export const GoalsPage: React.FC = () => {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const { data: goals, isLoading } = useGoals();
 
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -29,55 +28,7 @@ export const GoalsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navigation Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <Link to="/dashboard" className="flex items-center gap-3">
-                <div className="bg-blue-600 p-2 rounded-xl shadow-inner">
-                  <Wallet className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900 tracking-tight">Vaultify</span>
-              </Link>
-
-              {/* Navigation Links */}
-              <nav className="hidden md:flex items-center gap-2">
-                <Link
-                  to="/dashboard"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-                >
-                  <LayoutDashboard size={18} />
-                  <span>Dashboard</span>
-                </Link>
-                <Link
-                  to="/goals"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-semibold text-blue-600 bg-blue-50 transition-colors"
-                >
-                  <Target size={18} />
-                  <span>Financial Goals</span>
-                </Link>
-              </nav>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="hidden sm:flex items-center gap-3 text-sm">
-                <span className="text-gray-500">Welcome,</span>
-                <span className="font-semibold text-gray-800">{user?.name || user?.email}</span>
-                <span className="px-2.5 py-1 bg-green-100 text-green-700 rounded-full font-bold">
-                  {user?.currency}
-                </span>
-              </div>
-              <button
-                onClick={() => logout()}
-                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut size={20} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
